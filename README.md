@@ -5,7 +5,12 @@ the pages. Everything is free and legal: the books come from the **Internet Arch
 Children's Library**, about 2,800 public-domain children's books in English, scanned from the
 original illustrated editions.
 
-No accounts, no ads, no subscription. Nothing to install except the folder itself.
+No accounts, no ads, no subscription.
+
+**Live app: <https://dragoonant.github.io/book-machine/>**
+
+The first time it opens it asks the reader's name ("✎ Tell me your name") and keeps it
+in that browser only. Tap the greeting to change it.
 
 ## Putting it on a laptop (Windows, Mac or Chromebook)
 
@@ -22,15 +27,14 @@ It needs an internet connection to load books.
 
 ## Putting it on an iPad
 
-An iPad can't open a web app from a file, so the app needs to live at a web address first.
-Free static hosting works: GitHub Pages, Netlify Drop or Cloudflare Pages. Upload this
-folder, then on the iPad:
-
-1. Open the address in Safari.
+1. Open <https://dragoonant.github.io/book-machine/> in Safari.
 2. Tap **Share → Add to Home Screen**.
 
-It then gets its own icon and opens full-screen like an app. Before putting it online,
-consider blanking `readerName` in `config.js` so your child's name isn't on a public page.
+It then gets its own icon and opens full-screen like an app. The same link works in any
+browser on a laptop too. In Chrome or Edge, the install icon in the address bar makes it
+open in its own window.
+
+Pushing changes to `main` updates the live site within a minute or two.
 
 ## How she uses it
 
@@ -60,7 +64,8 @@ Progress is saved in the browser on that device only.
 
 Everything adjustable is in `config.js`:
 
-- `readerName`: the name in "Hi, ___! Today's pick". Leave it empty for no greeting name.
+- `readerName`: a fallback greeting name. Keep it empty on the public site; the app asks
+  the reader instead and stores the answer on their device.
 - `ROWS`: the home-screen rows. Each row is a title plus an Internet Archive search, so you
   can add rows like "Dogs" with `title:(dog OR puppy)`.
 

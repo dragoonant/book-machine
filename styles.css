@@ -198,11 +198,51 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .track { position: absolute; inset: 0; display: flex; width: 300%; transform: translateX(-33.3333%); will-change: transform; }
 .track.animating { transition: transform .32s cubic-bezier(.2, .8, .2, 1); }
 .slot { width: 33.3333%; height: 100%; padding: 8px 12px; }
-.slot img {
-  display: block; width: 100%; height: 100%; object-fit: contain;
+.page {
+  margin: 0; width: 100%; height: 100%; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 14px;
+}
+.page img {
+  display: block; width: 100%; height: 100%; min-height: 0; object-fit: contain;
   filter: drop-shadow(0 16px 30px #000a); pointer-events: none;
 }
-.slot img[src=""], .slot img:not([src]) { visibility: hidden; }
+.page img[src=""], .page img:not([src]) { visibility: hidden; }
+.page-text { display: none; }
+
+/* Picture books with words: picture on top, words underneath (side by side when wide). */
+.page.has-text img { flex: 1 1 0; height: auto; border-radius: 14px; }
+.page.has-text .page-text {
+  display: block; flex: 0 1 auto; width: min(100%, 900px); max-height: 44%; overflow: auto;
+  touch-action: pan-y; overscroll-behavior: contain; user-select: text; -webkit-user-select: text;
+  background: #fffaf0; color: #2a2350; border-radius: 20px; padding: 14px 24px;
+  font: 700 clamp(18px, 0.9vw + 13px, 27px) / 1.5 "Nunito", system-ui, sans-serif;
+  box-shadow: 0 16px 30px -12px #000a;
+}
+.page-text p { margin: 0 0 .5em; }
+.page-text p:last-child { margin-bottom: 0; }
+.page.text-only img { display: none; }
+.page.text-only .page-text { max-height: 100%; }
+.page.is-cover .page-text { text-align: center; background: none; color: var(--text); box-shadow: none; padding: 0 12px; }
+.page.is-cover h2 { font-family: "Baloo 2", sans-serif; font-size: clamp(1.7rem, 3.4vw, 2.8rem); line-height: 1.1; margin: 0 0 6px; color: var(--accent); }
+.page.is-cover p { font-size: clamp(15px, 1.4vw, 20px); color: var(--muted); }
+.w { border-radius: 6px; transition: background-color .12s; }
+.w.say { background: var(--accent); color: #2a1a00; box-shadow: 0 0 0 3px var(--accent); }
+@media (min-aspect-ratio: 5/4) and (min-width: 700px) {
+  .page.has-text:not(.is-cover) { flex-direction: row; gap: 22px; padding: 0 56px; }
+  .page.has-text:not(.is-cover) img { flex: 0 1 58%; min-width: 0; width: 58%; height: 100%; }
+  .page.has-text:not(.is-cover) .page-text { flex: 1 1 0; min-width: 260px; max-height: 100%; width: auto; align-self: center; }
+}
+
+.speak-btn {
+  border: 0; border-radius: 999px; padding: 8px 16px; font: 800 1rem "Nunito", sans-serif;
+  background: var(--teal); color: #062b26; white-space: nowrap; box-shadow: 0 4px 0 #23a893;
+}
+.speak-btn.on { background: var(--accent-2); color: #fff; box-shadow: 0 4px 0 #c94464; }
+.speak-btn:active { transform: translateY(3px); box-shadow: none; }
+.end-credit { font-weight: 600 !important; font-size: .85rem !important; opacity: .9; line-height: 1.4; margin-top: -10px !important; }
+.end-credit a, .sheet-credit a { color: inherit; }
+.sheet-blurb { margin: -6px 0 16px; line-height: 1.4; }
+.sheet-credit { color: var(--muted); font-size: .8rem; line-height: 1.4; margin: 16px 0 0; }
 .nav-btn {
   position: absolute; top: 50%; transform: translateY(-50%); width: 56px; height: 96px; border: 0;
   background: #ffffff14; border-radius: 16px; font-size: 3rem; line-height: 1; color: #fff; opacity: .55;
@@ -237,6 +277,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 /* Phones / narrow */
 @media (max-width: 640px) {
   .brand-name { display: none; }
+  .page-label { min-width: 0; font-size: .85rem; }
+  .speak-btn { padding: 6px 12px; font-size: .9rem; }
   .hero { grid-template-columns: 1fr; text-align: center; justify-items: center; }
   .hero .actions { justify-content: center; }
   .sheet { grid-template-columns: 1fr; justify-items: center; text-align: center; }

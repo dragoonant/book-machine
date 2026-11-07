@@ -1,6 +1,6 @@
 // Caches the app itself so it opens fast and can be installed.
 // Books stream from the Internet Archive (they need the internet).
-const CACHE = "book-machine-shell-v2";
+const CACHE = "book-machine-shell-v3";
 const SHELL = [
   "./",
   "index.html",
@@ -8,6 +8,8 @@ const SHELL = [
   "app.js",
   "reader.js",
   "ia.js",
+  "stories.js",
+  "catalog/index.js",
   "library.js",
   "config.js",
   "manifest.webmanifest",

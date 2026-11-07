@@ -25,7 +25,7 @@
       </div>
       <form class="search" id="searchForm" role="search">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></svg>
-        <input id="searchInput" type="search" placeholder="Find a book… try “bears” or “Oz”" autocomplete="off" enterkeyhint="search" />
+        <input id="searchInput" type="search" placeholder="Find a book… try “elephant” or “moon”" autocomplete="off" enterkeyhint="search" />
         <button type="button" id="searchClear" class="search-clear" hidden aria-label="Clear search">×</button>
       </form>
     </header>
@@ -48,11 +48,13 @@
         <div class="sheet-body">
           <h2 id="sheetTitle"></h2>
           <p class="sheet-meta" id="sheetMeta"></p>
+          <p class="sheet-blurb" id="sheetBlurb" hidden></p>
           <div class="sheet-progress" id="sheetProgress" hidden><span></span></div>
           <div class="sheet-actions">
             <button class="btn btn-primary" id="sheetRead">▶ Read</button>
             <button class="btn btn-ghost" id="sheetSave"></button>
           </div>
+          <p class="sheet-credit" id="sheetCredit" hidden></p>
         </div>
       </div>
     </div>
@@ -62,13 +64,14 @@
       <div class="reader-top">
         <button class="icon-btn" id="readerClose" aria-label="Close book">✕</button>
         <div class="reader-title" id="readerTitle"></div>
+        <button class="speak-btn" id="readerSpeak" aria-pressed="false" hidden>🔊 Read to me</button>
         <button class="icon-btn" id="readerSave" aria-label="Save to My Books">♡</button>
       </div>
       <div class="reader-stage" id="stage">
         <div class="track" id="track">
-          <div class="slot"><img alt="" draggable="false" /></div>
-          <div class="slot"><img alt="" draggable="false" /></div>
-          <div class="slot"><img alt="" draggable="false" /></div>
+          <div class="slot"><figure class="page"><img alt="" draggable="false" /><div class="page-text"></div></figure></div>
+          <div class="slot"><figure class="page"><img alt="" draggable="false" /><div class="page-text"></div></figure></div>
+          <div class="slot"><figure class="page"><img alt="" draggable="false" /><div class="page-text"></div></figure></div>
         </div>
         <div class="spinner" id="spinner" hidden></div>
         <button class="nav-btn nav-prev" id="prevBtn" aria-label="Previous page">‹</button>
@@ -83,6 +86,7 @@
           <div class="stars">★ ★ ★</div>
           <h2>The End!</h2>
           <p id="theEndText">You finished a book!</p>
+          <p class="end-credit" id="theEndCredit" hidden></p>
           <div class="sheet-actions">
             <button class="btn btn-primary" id="endPick">Pick another book</button>
             <button class="btn btn-ghost" id="endAgain">Read it again</button>
@@ -92,7 +96,9 @@
     </div>
 
     <script src="config.js"></script>
+    <script src="catalog/index.js"></script>
     <script src="ia.js"></script>
+    <script src="stories.js"></script>
     <script src="library.js"></script>
     <script src="reader.js"></script>
     <script src="app.js"></script>

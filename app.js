@@ -1,10 +1,11 @@
 (() => {
-const { CONFIG, ROWS, library } = BM;
+const { CONFIG, ROWS, STORY_ROWS, library, stories } = BM;
 const { searchBooks, textQuery, coverUrl } = BM.ia;
 const { openReader } = BM.reader;
 
 const $ = (id) => document.getElementById(id);
 const rowsEl = $("rows");
+const coverOf = (book) => book.cover || coverUrl(book.id);
 const heroEl = $("hero");
 
 // ---------- Cards ----------
@@ -24,7 +25,7 @@ function bookCard(book) {
   img.loading = "lazy";
   img.alt = "";
   img.onload = () => img.classList.add("loaded");
-  img.src = coverUrl(book.id);
+  img.src = coverOf(book);
   cover.append(img);
 
   const prog = library.progressFor(book.id);
@@ -36,6 +37,8 @@ function bookCard(book) {
     cover.append(bar);
   } else if (prog?.finished) {
     cover.append(el("span", "card-badge", "★ Read"));
+  } else if (stories.isStory(book)) {
+    cover.append(el("span", "card-badge", "🔊"));
   } else if (book.pages && book.pages <= 40) {
     cover.append(el("span", "card-badge", "Short"));
   }
@@ -108,11 +111,11 @@ function renderHero(book) {
   heroBook = book;
   heroEl.replaceChildren();
   const bg = el("div", "hero-bg");
-  bg.style.backgroundImage = `url("${coverUrl(book.id)}")`;
+  bg.style.backgroundImage = `url("${coverOf(book)}")`;
   const img = document.createElement("img");
   img.className = "hero-cover";
   img.alt = book.title;
-  img.src = coverUrl(book.id);
+  img.src = coverOf(book);
   img.onclick = () => openSheet(book);
   const body = el("div");
   const name = readerName();
@@ -126,7 +129,7 @@ function renderHero(book) {
     body.append(add);
   }
   body.append(el("h1", "hero-title", book.title));
-  body.append(el("p", "hero-meta", [book.author, book.year, book.pages && `${book.pages} pages`].filter(Boolean).join(" · ")));
+  body.append(el("p", "hero-meta", metaLine(book)));
   const actions = el("div", "actions");
   const read = el("button", "btn btn-primary", "▶ Read now");
   read.onclick = () => startReading(book);
@@ -137,6 +140,19 @@ function renderHero(book) {
   const done = library.finishedCount();
   if (done) body.append(el("p", "hero-stat", `★ You've finished ${done} book${done === 1 ? "" : "s"}!`));
   heroEl.append(bg, img, body);
+}
+
+function metaLine(book) {
+  const story = stories.isStory(book);
+  return [
+    book.author && `by ${book.author}`,
+    story && book.illus && book.illus !== book.author && `pictures by ${book.illus}`,
+    book.year,
+    book.pages && `${book.pages} pages`,
+    story && "🔊 Read to me",
+  ]
+    .filter(Boolean)
+    .join(" · ");
 }
 
 // The reader's name lives only in this browser, never in the published code.
@@ -165,6 +181,17 @@ function askName() {
 }
 
 async function loadHome() {
+  // Modern picture books come from a local list, so these rows appear instantly.
+  STORY_ROWS.forEach((r, i) => {
+    const books = stories.row(r.filter, CONFIG.rowSize, i + 1);
+    if (!books.length) return;
+    const made = makeRow(r.title, r.id);
+    fillTrack(made.track, books);
+    rowsEl.append(made.row);
+    rowCache.set(r.id, books);
+  });
+  if (rowCache.get("new")) pickHero(rowCache.get("new"));
+
   const rowEls = ROWS.map((r) => {
     const made = makeRow(r.title, r.id);
     made.track.append(...skeletonCards());
@@ -179,14 +206,13 @@ async function loadHome() {
         const books = await searchBooks({ q: r.q, sort: r.sort, rows: CONFIG.rowSize });
         rowCache.set(r.id, books);
         fillTrack(rowEls[i].track, books);
-        if (r.id === "quick") pickHero(books);
       } catch (err) {
         console.error(err);
         fillTrack(rowEls[i].track, [], "Couldn't load these books. Check the internet connection.");
       }
     })
   );
-  if (!heroEl.childElementCount) pickHero(rowCache.get("popular") || []);
+  if (!heroEl.childElementCount) pickHero(rowCache.get("quick") || rowCache.get("popular") || []);
 }
 
 function pickHero(books) {
@@ -210,17 +236,24 @@ async function runSearch(text) {
   $("results").hidden = false;
   $("resultsTitle").textContent = `Looking for “${text}”…`;
   const grid = $("resultsGrid");
-  grid.replaceChildren(...skeletonCards(12));
+  // Modern picture books first (searched on this device), then classics from the Internet Archive.
+  const local = stories.search(text).slice(0, 60);
+  grid.replaceChildren(...local.map(bookCard), ...skeletonCards(local.length ? 4 : 12));
+  let classics = [];
+  let failed = false;
   try {
-    const books = await searchBooks({ q, sort: "", rows: 60 });
-    if (seq !== searchSeq) return;
-    $("resultsTitle").textContent = books.length ? `Books about “${text}”` : `No books found for “${text}”. Try another word!`;
-    grid.replaceChildren(...books.map(bookCard));
+    classics = await searchBooks({ q, sort: "", rows: 40 });
   } catch {
-    if (seq !== searchSeq) return;
-    $("resultsTitle").textContent = "Search isn't working right now. Check the internet connection.";
-    grid.replaceChildren();
+    failed = true;
   }
+  if (seq !== searchSeq) return;
+  const total = local.length + classics.length;
+  $("resultsTitle").textContent = total
+    ? `Books about “${text}”`
+    : failed
+      ? "Search isn't working right now. Check the internet connection."
+      : `No books found for “${text}”. Try another word!`;
+  grid.replaceChildren(...local.map(bookCard), ...classics.map(bookCard));
 }
 
 function showHome() {
@@ -251,11 +284,25 @@ let sheetBook = null;
 
 function openSheet(book) {
   sheetBook = book;
-  $("sheetCover").src = coverUrl(book.id);
+  $("sheetCover").src = coverOf(book);
   $("sheetTitle").textContent = book.title;
-  $("sheetMeta").textContent = [book.author && `by ${book.author}`, book.year, book.pages && `${book.pages} pages`]
-    .filter(Boolean)
-    .join(" · ");
+  $("sheetMeta").textContent = metaLine(book);
+  $("sheetBlurb").textContent = book.blurb || "";
+  $("sheetBlurb").hidden = !book.blurb;
+  const credit = $("sheetCredit");
+  if (stories.isStory(book)) {
+    const c = stories.credit(book);
+    const a = document.createElement("a");
+    a.href = c.license.url;
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.textContent = c.license.name;
+    credit.replaceChildren(`From ${c.publisher}. Free to read and share under `, a, ".");
+    credit.hidden = false;
+  } else {
+    credit.textContent = "A classic from the Internet Archive's Children's Library.";
+    credit.hidden = false;
+  }
   const prog = library.progressFor(book.id);
   const bar = $("sheetProgress");
   if (prog && prog.page > 0 && !prog.finished) {
